@@ -57,11 +57,14 @@ class LogoParser:
     def program(self):
         while self.current_token < len(self.tokens):
             token_type, token_value = self.tokens[self.current_token]
-            self.command(token_type, token_value)    
+            self.command(token_type, token_value)
+            self.current_token += 1    
 
 screen = turtle.Screen()
 screen.title("Robot Virtual DSL")
 screen.setup(width=800, height=600)
+screen.tracer(0)
+turtle.colormode(255)
 
 class Robot:
     def __init__(self):
@@ -69,7 +72,14 @@ class Robot:
         self.y = 0
         self.angle = 0
         self.pen_down_state = False
-        self.pen_color = 0
+        self.pen_color = "red" # Inicializar el color del lápiz como rojo
+        self.colors = ["black", "red", "blue", "green", "yellow", "purple"]
+
+    def set_pen_color(self, color_index):
+        if 0 <= color_index < len(self.colors):  
+            self.pen_color = self.colors[color_index]
+        else:
+            raise ValueError(f"Índice de color inválido: {color_index}")
 
     def move_forward(self, steps):
         self.x += steps * math.cos(math.radians(self.angle))
@@ -105,20 +115,20 @@ class Robot:
 
     def draw_line(self):
         if self.pen_down_state:
-            turtle.begin_fill()
+            turtle.pencolor(self.pen_color) # Usar self.pen_color en lugar de self.set_pen_color
             turtle.pen(pencolor=self.pen_color, pendown=True)
             turtle.setpos(self.x, self.y)
         else:
-            turtle.begin_fill()
             turtle.pen(pendown=False)
             turtle.setpos(self.x, self.y)
+        turtle.update()
+
 
 class LogoExecutor(LogoParser):
     def __init__(self, input_str):
         super().__init__(input_str)
         self.robot = Robot()
 
-    # Reemplazar el método `command` con una versión que también ejecute las acciones
     def command(self, token_type, token_value):
         if token_type == 'REPT':
             repetitions = int(token_value[5:-1]) # Extraer el número de repeticiones
@@ -133,9 +143,13 @@ class LogoExecutor(LogoParser):
             steps = int(token_value[5:-1]) # Extraer el número de pasos
             self.robot.move_backward(steps)
         elif token_type == 'IZQD':
-            self.robot.turn_left()
+            angle = int(token_value[5:-1])  # Extraer el ángulo
+            for _ in range(angle // 90):
+                self.robot.turn_left()
         elif token_type == 'DERE':
-            self.robot.turn_right()
+            angle = int(token_value[5:-1])  # Extraer el ángulo
+            for _ in range(angle // 90):
+                self.robot.turn_right()
         elif token_type == 'LPLM':
             self.robot.pen_up()
         elif token_type == 'BPLM':
@@ -148,7 +162,7 @@ class LogoExecutor(LogoParser):
             color = int(token_value[5:-1])  # Extraer el número del color
             self.robot.set_pen_color(color)
 
-dsl_code = "BPLM; DELA(10); IZQD; DELA(10); IZQD; DELA(10); IZQD; DELA(10); LPLM;"
+dsl_code = "BPLM; DELA(10); IZQD(90); DELA(10); IZQD(90); DELA(15); IZQD(90); DELA(15); LPLM;"
 executor = LogoExecutor(dsl_code)
 executor.parse()
 
