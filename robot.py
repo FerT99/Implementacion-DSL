@@ -3,6 +3,7 @@ import turtle
 import re
 
 class LogoParser:
+    #inicializar parser
     def __init__(self, input_str):
         self.input_str = input_str
         self.tokens = []
@@ -43,15 +44,16 @@ class LogoParser:
             pos = match.end()
             token_type = match.lastgroup
             token_value = match.group(token_type)
-
+            #comprobamos que no esté vacío
             if token_type != 'WHITESPACE':
                 self.tokens.append((token_type, token_value))
 
+    #análisis del token
     def expect(self, expected_token_type):
         token_type, token_value = self.tokens[self.current_token]
         if token_type != expected_token_type:
             raise SyntaxError(f"Se esperaba {expected_token_type}, pero se encontró {token_type}")
-        self.current_token += 1
+        self.current_token += 1 #incrementar en 1 para evitar un loop infinito
         return token_value
 
     def program(self):
@@ -65,7 +67,6 @@ screen.title("Robot Virtual DSL")
 screen.setup(width=800, height=600)
 screen.tracer(0)
 turtle.colormode(255)
-
 class Robot:
     def __init__(self):
         self.x = 0
@@ -115,7 +116,7 @@ class Robot:
 
     def draw_line(self):
         if self.pen_down_state:
-            turtle.pencolor(self.pen_color) # Usar self.pen_color en lugar de self.set_pen_color
+            turtle.pencolor(self.pen_color) 
             turtle.pen(pencolor=self.pen_color, pendown=True)
             turtle.setpos(self.x, self.y)
         else:
@@ -162,7 +163,7 @@ class LogoExecutor(LogoParser):
             color = int(token_value[5:-1])  # Extraer el número del color
             self.robot.set_pen_color(color)
 
-dsl_code = "BPLM; DELA(10); IZQD(90); DELA(10); IZQD(90); DELA(15); IZQD(90); DELA(15); LPLM;"
+dsl_code = "BPLM; DELA(20); IZQD(90); }; IZQD(90); DELA(20); }; LPLM;"
 executor = LogoExecutor(dsl_code)
 executor.parse()
 
